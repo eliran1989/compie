@@ -4,7 +4,7 @@
 class TicTacToe 
 {
 
-    private $difficulty , $gameMode , $winner = false , $players , $moveIndex=1;
+    private $difficulty , $gameMode , $winner = false , $players , $moveIndex=1 , $sessionID ,$mysqli;
 
     private $board = array(
         array(" " ," " ," "),
@@ -24,18 +24,31 @@ class TicTacToe
             $this->players[] = "cmp";
         }
 
+        $this->mysqli = mysqli_connect("localhost","root","","compie");
+
+
+        if (mysqli_connect_errno()) {
+            $this->mysqli = false;
+        }
 
     }
 
-
-
       public function initGame(){
 
-   
+        $this->sessionID = session_id();
+
+
+        if ($this->mysqli) {
+            $this->mysqli->query("INSERT INTO `tictactoe` (`session_id` ,`player1`,`player2`)
+            VALUES ('$this->sessionID' , '".$this->players[0]."' , '".$this->players[1]."')");       
+        }
+
         do {
             $this->nextMove();
             $this->moveIndex++;
         } while (!$this->winner && !$this->draw);
+
+
 
 
       }
@@ -85,76 +98,27 @@ class TicTacToe
 
         if($this->winner){
             echo "$playerName -$letter- is the Winner";
+            if ($this->mysqli) {
+                $this->mysqli->query("UPDATE`tictactoe` SET `winner`='$playerName'");
+            }
         }
 
         if($this->draw && !$this->winner){
-            echo "This a Tie";
+            echo "It's a tie";
+            if ($this->mysqli) {
+                $this->mysqli->query("UPDATE`tictactoe` SET `winner`='tie'");
+            }
+
         }
 
 
 
+    }
 
-
-      }
 
 
 
       private function cmpMove($letter){
-
-            switch ($this->difficulty) {
-                case 1:
-                    
-                    do {
-                        $x = rand(0 ,2);
-                        $y =rand(0 ,2);
-                    } while ($this->board[$x][$y]!= " ");
-
-                    $this->board[$x][$y] = $letter;
-
-                    break;
-                case 2:
-                 if($this->moveIndex==1){
-
-                        do {
-                            $x = rand(0 ,2);
-                            $y =rand(0 ,2);
-                        } while ($this->board[$x][$y]!= " ");
-                        $this->board[$x][$y] = $letter;
-
-                 }else{
-
-                     for ($i=0; $i < count($this->board) ; $i++) { 
-                         for ($j=0; $j <count($this->board[$i]) ; $j++) { 
-                            
-                                if($this->board[$i][$j]==" "){
-                                    $this->board[$i][$j]=$letter;
-                                    if($winner = $this->checkWinner($letter)){
-                                        break;
-                                    }else{
-                                        $this->board[$i][$j]=" ";
-                                    }
-                                }
-
-                         }
-                     }
-
-
-                     if(!$winner){
-
-                        do {
-                            $x = rand(0 ,2);
-                            $y =rand(0 ,2);
-                        } while ($this->board[$x][$y]!= " ");
-                        $this->board[$x][$y] = $letter;
-
-                     }
-
-
-                 }
-
-                    break;
-                case 3:
-
 
                     $bestScore = -INF;
                     $bestMove;
@@ -181,15 +145,8 @@ class TicTacToe
                         }
                     }
 
-            
+        
                     $this->board[$bestMove['x']][$bestMove['y']] = "$letter"; 
-
-                    break;
-            }
-
-
-
-
 
 
       }
@@ -198,7 +155,13 @@ class TicTacToe
       private function minimax($board , $depth ,$alpha , $beta ,  $isMaximizing){
 
 
-            if($this->checkWinner("X" , $board)){
+            if($this->difficulty == 1 && $depth>2){
+                return $depth;
+            }
+
+
+
+            if($this->checkWinner("X" , $board) && $this->difficulty == 3){
                 return -$depth;
             }
 
@@ -210,6 +173,9 @@ class TicTacToe
             if($this->checkDraw($board)){
                 return 0;
             }
+
+
+           
             
             
             $bestScore = $lastBestScore = ($isMaximizing) ? -INF :INF;
@@ -336,7 +302,7 @@ class TicTacToe
 
       private function printBoard($board=false){
 
-         print_r($board);
+    
     
         if(!$board){
             $board = $this->board;

@@ -7,30 +7,38 @@
     if(isset($_GET['session_id'])){
         session_id($_GET['session_id']);
         session_start();
-
+        ///session_destroy();
         $ticTacToe = $_SESSION['ticTacToe'];
+      
+        
     }
 
 
 
     if(isset($_GET['init_game'])){
-        if(!isset($mode = $_GET['mode']))
+       
+        session_start();
+
+        if(!isset($_GET['mode'])){
             echo "error";
-        if((!isset($difficulty = $_GET['difficulty'])))
+            die;
+        }
+
+        if((!isset($_GET['players']))){
             echo "error";
-        if((!isset($players = $_GET['players'])))
-            echo "error";
+            die;
+        }
 
 
-            
-        $ticTacToe = new TicTacToe($mode , $players , (isset($difficulty) ? $difficulty : false));
+        $ticTacToe = new TicTacToe($_GET['mode'] , explode(","  , $_GET['players']) , (isset($_GET['difficulty']) ? $_GET['difficulty'] : false));
         $ticTacToe->initGame();
 
         $_SESSION['ticTacToe']  = $ticTacToe;
 
     }else{
-        if(isset($x = $_GET['x']) && isset($y = $_GET['y'])){
-            $ticTacToe->nextMove($X ,$y);
+
+        if(isset($_GET['x']) && isset($_GET['y'])){
+            $ticTacToe->nextMove($_GET['x'] ,$_GET['y']);
         }
 
     }

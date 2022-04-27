@@ -7,10 +7,7 @@
     if(isset($_GET['session_id'])){
         session_id($_GET['session_id']);
         session_start();
-        ///session_destroy();
         $ticTacToe = $_SESSION['ticTacToe'];
-      
-        
     }
 
 
@@ -20,17 +17,30 @@
         session_start();
 
         if(!isset($_GET['mode'])){
-            echo "error";
+            echo json_encode(array("error"=>array("message"=>"Game mode is missing (single player - 1 or multiplayer - 2")));
+            die;
+        }
+
+
+        if(isset($_GET['mode']) && $_GET['mode'] == 1 && !isset($_GET['difficulty'])){
+            echo json_encode(array("error"=>array("message"=>"Game Difficulty is missing (1.easy , 2.normal 3.hard)")));
             die;
         }
 
         if((!isset($_GET['players']))){
-            echo "error";
+            echo json_encode(array("error"=>array("message"=>"Players names is missing")));
+            die;
+        }
+
+        $players = explode(","  , $_GET['players']);
+
+        if(isset($_GET['mode']) && $_GET['mode'] == 2 && (!is_array($players)  || count($players)!=2)){
+            echo json_encode(array("error"=>array("message"=>"You need to send two players name")));
             die;
         }
 
 
-        $ticTacToe = new TicTacToe($_GET['mode'] , explode(","  , $_GET['players']) , (isset($_GET['difficulty']) ? $_GET['difficulty'] : false));
+        $ticTacToe = new TicTacToe($_GET['mode'] , $players , (isset($_GET['difficulty']) ? $_GET['difficulty'] : false));
         $ticTacToe->initGame();
 
         $_SESSION['ticTacToe']  = $ticTacToe;

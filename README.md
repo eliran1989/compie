@@ -12,3 +12,7 @@
 
 **start game**
 >/?init_game&mode=1&players=eliran&difficulty=3
+
+
+**game move**
+>/?session_id=&x=0&y=0
